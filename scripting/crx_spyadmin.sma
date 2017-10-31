@@ -1,13 +1,13 @@
 #include <amxmodx>
 #include <cromchat>
 
-#define PLUGIN_VERSION "2.0"
+#define PLUGIN_VERSION "2.0.1"
 #define REFRESH_DELAY 0.1
 
 new bool:g_bSpy[33], bool:g_bAdmin[33]
 new g_iOriginalFlags[33], g_iDefaultFlag
 new g_pAdminFlag, g_pAutoHide
-new bool:g_bAutoHide, g_iAdminFlag
+new g_iAutoHide, g_iAdminFlag
 
 new const g_szCommands[][] = { "say /spy", "say_team /spy", "say /spyadmin", "say_team /spyadmin", "amx_spy", "amx_spyadmin" }
 
@@ -33,7 +33,7 @@ public plugin_cfg()
 	g_iAdminFlag = read_flags(szFlags)
 	get_cvar_string("amx_default_access", szFlags, charsmax(szFlags))
 	g_iDefaultFlag = read_flags(szFlags)
-	g_bAutoHide = get_pcvar_bool(g_pAutoHide)
+	g_iAutoHide = get_pcvar_num(g_pAutoHide)
 }
 
 public client_putinserver(id)
@@ -45,7 +45,7 @@ public spyadmin_checkadmin(id)
 	g_iOriginalFlags[id] = get_user_flags(id)
 	g_bAdmin[id] = bool:(get_user_flags(id) & g_iAdminFlag)
 	
-	if(g_bAutoHide && g_bAdmin[id])
+	if(g_iAutoHide && g_bAdmin[id])
 		spyadmin_removeflags(id)
 }
 
