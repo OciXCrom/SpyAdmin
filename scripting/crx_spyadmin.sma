@@ -1,13 +1,17 @@
 #include <amxmodx>
 #include <cromchat>
 
-#define PLUGIN_VERSION "2.0.1"
+native cm_update_player_data(id)
+
+#define PLUGIN_VERSION "2.1"
 #define REFRESH_DELAY 0.1
 
 new bool:g_bSpy[33], bool:g_bAdmin[33]
 new g_iOriginalFlags[33], g_iDefaultFlag
 new g_pAdminFlag, g_pAutoHide
 new g_iAutoHide, g_iAdminFlag
+
+new bool:g_bChatManager
 
 new const g_szCommands[][] = { "say /spy", "say_team /spy", "say /spyadmin", "say_team /spyadmin", "amx_spy", "amx_spyadmin" }
 
@@ -17,6 +21,9 @@ public plugin_init()
 	register_cvar("CRXSpyAdmin", PLUGIN_VERSION, FCVAR_SERVER|FCVAR_SPONLY|FCVAR_UNLOGGED)
 	register_dictionary("SpyAdmin.txt")
 	
+	if(LibraryExists("chatmanager", LibType_Library))
+		g_bChatManager = true
+	
 	g_pAdminFlag = register_cvar("spyadmin_adminflag", "e")
 	g_pAutoHide = register_cvar("spyadmin_autohide", "0")
 	
@@ -25,6 +32,18 @@ public plugin_init()
 	
 	CC_SetPrefix("&x04[SPY]")
 }
+
+public plugin_natives()
+{
+	set_module_filter("module_filter")
+	set_native_filter("native_filter")
+}
+	
+public module_filter(const szLibrary[])
+	return equal(szLibrary, "chatmanager") ? PLUGIN_HANDLED : PLUGIN_CONTINUE
+	
+public native_filter(const szNative[], id, iTrap)
+	return (!iTrap && equal(szNative, "cm_update_player_data")) ? PLUGIN_HANDLED : PLUGIN_CONTINUE
 
 public plugin_cfg()
 {
@@ -63,6 +82,10 @@ public CmdSpy(id)
 {
 	if(!g_bAdmin[id]) CC_SendMessage(id, "%L", id, "SPYADMIN_NOACCESS")
 	else g_bSpy[id] ? spyadmin_setflags(id) : spyadmin_removeflags(id)
+	
+	if(g_bChatManager)
+		cm_update_player_data(id)
+		
 	return PLUGIN_HANDLED
 }
 
